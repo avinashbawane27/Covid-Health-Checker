@@ -1,12 +1,7 @@
 package com.example.covidsymptoms;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
@@ -64,24 +59,14 @@ public class SymptomsScreen extends AppCompatActivity {
                     System.out.println(TAG + "Symptoms Screen : " + uploadSignsClicked);
                 }
 
-                LocalBroadcastManager.getInstance(SymptomsScreen.this).registerReceiver(new BroadcastReceiver() {
-                    @Override
-                    public void onReceive(Context context, Intent intent) {
-                        Bundle b = intent.getExtras();
-                        heartRateFinal = Float.parseFloat(b.getString("calcHeartRate"));
-                        respiratoryRateFinal = Float.parseFloat(b.getString("calcRespiratoryRate"));
-                    }
-                }, new IntentFilter("broadcastingHeartData"));
-
                 Map<String, Float> data = new HashMap<String, Float>();
-                MainPage mainPage = new MainPage();
+
+                SharedPreferences prefs = getSharedPreferences("MySharedPref", MODE_PRIVATE);
+                heartRateFinal = prefs.getFloat("HR", 0f);
+                respiratoryRateFinal = prefs.getFloat("RR", 0f);
 
                 System.out.println(TAG + heartRateFinal);
                 System.out.println(TAG + respiratoryRateFinal);
-
-                SharedPreferences prefs = getSharedPreferences("MySharedPref", MODE_PRIVATE);
-                heartRateFinal = prefs.getFloat("HR", mainPage.heartRateFinal);
-                respiratoryRateFinal = prefs.getFloat("HR", mainPage.breathingRateFinal);
 
                 data.put("HeartRate", heartRateFinal);
                 data.put("RespiratoryRate", respiratoryRateFinal);

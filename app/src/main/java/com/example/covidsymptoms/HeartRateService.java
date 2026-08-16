@@ -81,10 +81,11 @@ public class HeartRateService extends Service {
 
                 Future<ArrayList<Integer>> future = resultList.get(i);
                 try {
-                    b.putIntegerArrayList("heartData" + i, future.get());
+                    ArrayList<Integer> frameResult = future.get();
+                    b.putIntegerArrayList("heartData" + i, frameResult != null ? frameResult : new ArrayList<Integer>());
                 } catch (InterruptedException | ExecutionException e) {
                     e.printStackTrace();
-                    e.getCause();
+                    b.putIntegerArrayList("heartData" + i, new ArrayList<Integer>());
                 }
             }
             //Service stopped once frames are extracted
@@ -181,7 +182,7 @@ public class HeartRateService extends Service {
             }
         }
 
-        return (int)(redBucket / pixelCount);
+        return pixelCount == 0 ? 0 : (int)(redBucket / pixelCount);
     }
 
 

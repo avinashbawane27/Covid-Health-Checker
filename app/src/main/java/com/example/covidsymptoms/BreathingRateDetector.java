@@ -21,14 +21,20 @@ public class BreathingRateDetector extends MainPage implements Runnable{
         saveToCSV(accelValuesX, csvFilePath);
 
         //Noise reduction from Accelerometer X values
-//        ArrayList<Integer> accelValuesXDenoised = denoise(accelValuesX, 10);
+        ArrayList<Integer> accelValuesXDenoised = SignalProcessingUtils.denoise(accelValuesX, 10);
 
         csvFilePath = rootPath + "/x_values_denoised.csv";
-        saveToCSV(accelValuesX, csvFilePath);
+        saveToCSV(accelValuesXDenoised, csvFilePath);
 
         //Peak detection algorithm running on denoised Accelerometer X values
-        int  zeroCrossings = peakFinding(accelValuesX);
-        breathingRate = (zeroCrossings*60)/90;
+        if (accelValuesXDenoised.size() < 2) {
+            Log.e("log", "Not enough accelerometer samples to compute respiratory rate");
+            breathingRate = 0;
+            return;
+        }
+
+        int zeroCrossings = SignalProcessingUtils.peakFinding(accelValuesXDenoised);
+        breathingRate = (zeroCrossings * 60f) / 90;
         Log.i("log", "Respiratory rate" + breathingRate);
     }
 }

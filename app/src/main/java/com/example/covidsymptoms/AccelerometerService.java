@@ -20,11 +20,17 @@ public class AccelerometerService extends Service implements SensorEventListener
     private SensorManager sensorManager;
     private Sensor senseAccel;
     private ArrayList<Integer> accelValuesX = new ArrayList<>();
+    private volatile boolean collectionComplete = false;
 
     @Override
     public void onCreate(){
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         senseAccel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        if (senseAccel == null) {
+            Log.e("log", "No accelerometer sensor available on this device");
+            stopSelf();
+            return;
+        }
         sensorManager.registerListener(this, senseAccel, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
@@ -37,12 +43,17 @@ public class AccelerometerService extends Service implements SensorEventListener
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
 
+        if (collectionComplete) {
+            return;
+        }
+
         Sensor genericSensor = sensorEvent.sensor;
         if (genericSensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 
             accelValuesX.add((int)(sensorEvent.values[0] * 100));
 
             if(accelValuesX.size() >= 300){
+                collectionComplete = true;
                 stopSelf();
             }
         }

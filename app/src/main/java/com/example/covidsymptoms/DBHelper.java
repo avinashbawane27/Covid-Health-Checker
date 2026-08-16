@@ -37,7 +37,8 @@ public class DBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase DB, int i, int i1) {
-        DB.execSQL("drop table if exists userdetails");
+        DB.execSQL("drop table if exists Bawane");
+        onCreate(DB);
     }
 
     public boolean insertUserData(Map<String, Float> data) {
@@ -75,18 +76,19 @@ public class DBHelper extends SQLiteOpenHelper {
 
         Cursor readCursor = dbReader.rawQuery(selectQuery, null);
 
-        heartRate = readCursor.getString(0);
-        respiratoryRate =  readCursor.getString(1);
+        if (readCursor.getCount() > 0 && readCursor.moveToFirst()) {
+            heartRate = readCursor.getString(0);
+            respiratoryRate = readCursor.getString(1);
 
-        System.out.println(TAG + "Printing initial two values : " + heartRate + " " + respiratoryRate);
-
-        if (readCursor.getCount() > 0) {
+            System.out.println(TAG + "Printing initial two values : " + heartRate + " " + respiratoryRate);
             System.out.println(TAG + "cursor get count" + readCursor.getCount());
 
             readCursor.close();
             return true;
-        } else
+        } else {
+            readCursor.close();
             return false;
+        }
     }
 
     public Cursor getdata() {

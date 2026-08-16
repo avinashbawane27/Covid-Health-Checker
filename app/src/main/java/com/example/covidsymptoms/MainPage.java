@@ -39,8 +39,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static java.lang.Math.abs;
-
 public class MainPage extends AppCompatActivity {
     private static String TAG = "MainPage: ";
 
@@ -226,14 +224,21 @@ public class MainPage extends AppCompatActivity {
 
                 for (int i = 0; i < windows; i++) {
 
-                    ArrayList<Integer> heartData = null;
-                    heartData = b.getIntegerArrayList("heartData"+i);
-
-                    float zeroCrossings = peakFinding(heartData);
-                    heartRate += zeroCrossings/2;
+                    ArrayList<Integer> heartData = b.getIntegerArrayList("heartData"+i);
+                    if (heartData == null || heartData.isEmpty()) {
+                        continue;
+                    }
 
                     String csvFilePath = rootPath + "/finger_tip" + i + ".csv";
                     saveToCSV(heartData, csvFilePath);
+
+                    ArrayList<Integer> denoisedRedness = denoise(heartData, 5);
+                    if (denoisedRedness.size() < 2) {
+                        continue;
+                    }
+
+                    float zeroCrossings = peakFinding(denoisedRedness);
+                    heartRate += zeroCrossings/2;
                 }
 
                 heartRate = (heartRate*12)/ windows;
@@ -255,36 +260,12 @@ public class MainPage extends AppCompatActivity {
         uploadSignsClicked = false;
     }
 
+    public ArrayList<Integer> denoise(ArrayList<Integer> data, int filter){
+        return SignalProcessingUtils.denoise(data, filter);
+    }
+
     public int peakFinding(ArrayList<Integer> data) {
-
-        int diff, prev, slope = 0, zeroCrossings = 0;
-        int j = 0;
-        prev = data.get(0);
-
-        while(slope == 0 && j + 1 < data.size()) {
-            diff = data.get(j + 1) - data.get(j);
-            if(diff != 0) {
-                slope = diff/abs(diff);
-            }
-            j++;
-        }
-
-        for(int i = 1; i<data.size(); i++) {
-
-            diff = data.get(i) - prev;
-            prev = data.get(i);
-
-            if(diff == 0) continue;
-
-            int currSlope = diff/abs(diff);
-
-            if(currSlope == -1* slope){
-                slope *= -1;
-                zeroCrossings++;
-            }
-        }
-
-        return zeroCrossings;
+        return SignalProcessingUtils.peakFinding(data);
     }
 
     public void saveToCSV(ArrayList<Integer> data, String path){
